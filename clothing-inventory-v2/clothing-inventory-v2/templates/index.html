@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="STCKD" />
+  <title>STCKD — Dashboard</title>
+  <link rel="manifest" href="/static/manifest.json" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
+  <style>
+    :root{--ink:#0a0a0a;--bone:#f5f2ed;--warm:#e8e2d9;--accent:#c8ff00;--red:#ff3b30;--muted:#7a7670;--card:#fff;--border:#d4cfc8;--green:#22c55e;--r:4px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--bone);color:var(--ink);min-height:100vh;font-size:14px}
+
+    header{background:var(--ink);color:var(--bone);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:52px;position:sticky;top:0;z-index:100}
+    .logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:4px;color:var(--accent)}
+    header nav{display:flex;gap:4px;align-items:center}
+    header nav button{background:none;border:1px solid transparent;color:var(--bone);padding:5px 12px;font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:var(--r);transition:.15s}
+    header nav button:hover{border-color:var(--muted)}
+    header nav button.active{background:var(--accent);color:var(--ink);border-color:var(--accent);font-weight:500}
+    .export-btn{background:none;border:1px solid var(--accent);color:var(--accent);padding:5px 12px;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:var(--r);transition:.15s;font-family:'DM Sans',sans-serif}
+    .export-btn:hover{background:var(--accent);color:var(--ink)}
+    .logout-btn{color:#5a5a58;font-size:11px;text-decoration:none;padding:5px 10px;border:1px solid #2a2a2a;border-radius:var(--r);letter-spacing:.5px}
+
+    .stats-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+    @media(max-width:700px){.stats-bar{grid-template-columns:repeat(3,1fr)}}
+    .stat-card{background:var(--card);padding:14px 18px}
+    .stat-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+    .stat-value{font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1}
+    .stat-value.green{color:var(--green)}.stat-value.red{color:var(--red)}.stat-value.amber{color:#b8960a}
+
+    .layout{display:flex;min-height:calc(100vh - 52px - 63px)}
+    @media(max-width:700px){.layout{flex-direction:column}}
+
+    aside{width:280px;min-width:280px;background:var(--card);border-right:1px solid var(--border);padding:20px 18px;overflow-y:auto}
+    @media(max-width:700px){aside{width:100%;border-right:none;border-bottom:1px solid var(--border)}}
+    aside h2{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+
+    .form-group{margin-bottom:12px}
+    label{display:block;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+    input[type=text],input[type=number],select{width:100%;background:var(--bone);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:.15s}
+    input:focus,select:focus{border-color:var(--ink)}
+    .price-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .profit-preview{background:var(--bone);border:1px solid var(--border);border-radius:var(--r);padding:7px 10px;font-size:12px;color:var(--muted);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+    .profit-preview strong{font-size:14px}
+    .dropzone{border:2px dashed var(--border);border-radius:var(--r);padding:16px;text-align:center;cursor:pointer;position:relative;background:var(--bone);transition:.2s}
+    .dropzone:hover{border-color:var(--ink)}
+    .dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+    .dz-lbl{font-size:11px;color:var(--muted);pointer-events:none}
+    .dz-lbl strong{display:block;font-size:12px;color:var(--ink);margin-bottom:2px}
+    #preview-img{max-height:80px;max-width:100%;border-radius:var(--r);margin-top:8px;display:none}
+    .btn-primary{width:100%;background:var(--ink);color:var(--accent);border:none;border-radius:var(--r);padding:11px;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:3px;cursor:pointer;transition:.2s;margin-top:4px}
+    .btn-primary:hover{background:#222;transform:translateY(-1px)}
+
+    main{flex:1;padding:18px 22px;overflow-y:auto}
+
+    .filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+    .filter-bar input{width:180px;background:var(--card)}
+    .tab-btn{padding:6px 12px;border:1px solid var(--border);background:var(--card);border-radius:20px;font-size:11px;cursor:pointer;transition:.15s;color:var(--ink)}
+    .tab-btn:hover{border-color:var(--ink)}
+    .tab-btn.active{background:var(--ink);color:var(--accent);border-color:var(--ink)}
+    .count-badge{background:var(--warm);color:var(--muted);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:2px}
+    .tab-btn.active .count-badge{background:#ffffff22;color:var(--accent)}
+
+    .inventory-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:11px}
+
+    .item-card{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden;transition:.2s;animation:fadeUp .3s ease both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+    .item-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.09);transform:translateY(-2px)}
+    .item-card.oos{opacity:.6}
+    .card-img{aspect-ratio:3/4;background:var(--warm);overflow:hidden;position:relative}
+    .card-img img{width:100%;height:100%;object-fit:cover;transition:.4s}
+    .item-card:hover .card-img img{transform:scale(1.04)}
+    .no-img{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--border)}
+    .badge{position:absolute;top:7px;right:7px;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:3px 7px;border-radius:3px;font-weight:500}
+    .badge.in{background:var(--accent);color:var(--ink)}.badge.out{background:var(--red);color:#fff}
+    .card-body{padding:10px 12px}
+    .card-cat{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+    .card-name{font-size:13px;font-weight:500;margin-bottom:5px;line-height:1.3}
+    .price-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:3px}
+    .pb label{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+    .pb .val{font-family:'Bebas Neue',sans-serif;font-size:16px}
+    .profit-line{font-size:10px;font-weight:500;margin-top:2px}
+    .card-qty{font-size:10px;color:var(--muted);margin-top:2px}
+    .card-qty strong{color:var(--ink);font-weight:500}
+    .sales-mini{font-size:9px;color:var(--muted);margin-top:2px}
+    .card-actions{display:flex;gap:4px;padding:7px 10px;border-top:1px solid var(--warm)}
+    .btn-sm{flex:1;padding:5px;border:1px solid var(--border);background:var(--bone);border-radius:var(--r);font-size:10px;cursor:pointer;text-transform:uppercase;transition:.15s;color:var(--ink)}
+    .btn-sm:hover{background:var(--warm)}
+    .btn-sm.sell{background:var(--ink);color:var(--accent);border-color:var(--ink)}
+    .btn-sm.del{color:var(--red)}
+    .btn-sm.del:hover{background:#fff0f0;border-color:var(--red)}
+
+    #view-sales{display:none}
+    .sales-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+    .sales-table th{background:var(--ink);color:var(--bone);padding:9px 12px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;text-align:left;font-weight:400}
+    .sales-table td{padding:9px 12px;border-bottom:1px solid var(--warm);vertical-align:middle}
+    .sales-table tr:last-child td{border-bottom:none}
+    .sales-table tr:hover td{background:var(--bone)}
+    .sale-thumb{width:28px;height:38px;object-fit:cover;border-radius:3px;background:var(--warm);display:block}
+    .pft.pos{color:var(--green);font-weight:500}.pft.neg{color:var(--red);font-weight:500}
+
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:center;justify-content:center}
+    .overlay.open{display:flex}
+    .modal{background:var(--card);border-radius:8px;width:400px;max-width:95vw;padding:24px;animation:popIn .2s ease}
+    @keyframes popIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+    .modal h3{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;margin-bottom:16px}
+    .modal-actions{display:flex;gap:8px;margin-top:16px}
+    .btn-cancel{flex:1;padding:10px;border:1px solid var(--border);background:none;border-radius:var(--r);font-size:13px;cursor:pointer}
+    .btn-cancel:hover{background:var(--bone)}
+    .modal-profit{background:var(--bone);border:1px solid var(--border);border-radius:var(--r);padding:7px 12px;font-size:12px;margin-top:8px;display:flex;justify-content:space-between}
+
+    .empty{grid-column:1/-1;text-align:center;padding:50px;color:var(--muted)}
+    .empty-icon{font-size:42px;margin-bottom:12px}
+    .empty h3{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--ink)}
+
+    #toast{position:fixed;bottom:18px;right:18px;background:var(--ink);color:var(--accent);padding:10px 18px;border-radius:6px;font-size:13px;opacity:0;transform:translateY(8px);transition:.25s;pointer-events:none;z-index:999}
+    #toast.show{opacity:1;transform:none}
+    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bone)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo">STCKD</div>
+  <nav>
+    <button class="active" onclick="switchView('inventory',this)">Inventory</button>
+    <button onclick="switchView('sales',this)">Sales</button>
+    <button class="export-btn" onclick="exportExcel()">⬇ Excel</button>
+    <a href="/logout" class="logout-btn">Logout</a>
+  </nav>
+</header>
+
+<div class="stats-bar">
+  <div class="stat-card"><div class="stat-label">SKUs</div><div class="stat-value" id="s-total">—</div></div>
+  <div class="stat-card"><div class="stat-label">In Stock</div><div class="stat-value green" id="s-in">—</div></div>
+  <div class="stat-card"><div class="stat-label">Out of Stock</div><div class="stat-value red" id="s-out">—</div></div>
+  <div class="stat-card"><div class="stat-label">Inv. Value</div><div class="stat-value" id="s-val">—</div></div>
+  <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value" id="s-rev">—</div></div>
+  <div class="stat-card"><div class="stat-label">Profit</div><div class="stat-value amber" id="s-pft">—</div></div>
+</div>
+
+<div class="layout">
+  <aside>
+    <h2>Add Item</h2>
+    <form id="add-form" enctype="multipart/form-data">
+      <div class="form-group"><label>Name</label><input type="text" name="name" placeholder="Item name" required /></div>
+      <div class="form-group"><label>Category</label>
+        <select name="category">
+          <option>Tops</option><option>Bottoms</option><option>Dresses</option>
+          <option>Outerwear</option><option>Footwear</option><option>Accessories</option><option>General</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Quantity</label><input type="number" name="quantity" min="0" value="1" /></div>
+      <div class="price-row">
+        <div class="form-group"><label>Buy Price (฿)</label><input type="number" name="buy_price" id="a-buy" min="0" step="1" placeholder="0" oninput="calcAdd()" /></div>
+        <div class="form-group"><label>Sale Price (฿)</label><input type="number" name="sale_price" id="a-sale" min="0" step="1" placeholder="0" oninput="calcAdd()" /></div>
+      </div>
+      <div class="profit-preview"><span>Profit / unit</span><strong id="a-pft-prev" style="color:var(--green)">฿0</strong></div>
+      <div class="form-group"><label>Image</label>
+        <div class="dropzone">
+          <input type="file" name="image" accept="image/*" id="img-inp" />
+          <div class="dz-lbl"><strong>Click or drag image</strong>JPG, PNG, WEBP</div>
+          <img id="preview-img" src="" alt="" />
+        </div>
+      </div>
+      <button type="submit" class="btn-primary">＋ Add</button>
+    </form>
+  </aside>
+
+  <main>
+    <div id="view-inventory">
+      <div class="filter-bar">
+        <input type="text" id="search" placeholder="Search…" oninput="renderGrid()" />
+        <button class="tab-btn active" onclick="setFilter('all',this)">All <span class="count-badge" id="c-all">0</span></button>
+        <button class="tab-btn" onclick="setFilter('instock',this)">In Stock <span class="count-badge" id="c-in">0</span></button>
+        <button class="tab-btn" onclick="setFilter('outofstock',this)">Out <span class="count-badge" id="c-out">0</span></button>
+      </div>
+      <div class="inventory-grid" id="grid"></div>
+    </div>
+
+    <div id="view-sales">
+      <table class="sales-table">
+        <thead><tr><th></th><th>Item</th><th>Qty</th><th>Buy</th><th>Sale</th><th>Revenue</th><th>Profit</th><th>Note</th><th>Date</th></tr></thead>
+        <tbody id="sales-tbody"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Sell Modal -->
+<div class="overlay" id="sell-ov" onclick="if(event.target===this)closeM('sell-ov')">
+  <div class="modal">
+    <h3>Record Sale</h3>
+    <input type="hidden" id="s-id" />
+    <div class="form-group"><label>Item</label><input type="text" id="s-name" readonly style="background:#f0f0ec" /></div>
+    <div class="form-group"><label>Qty to Sell</label><input type="number" id="s-qty" min="1" value="1" oninput="calcSell()" /></div>
+    <div class="form-group"><label>Sale Price (฿)</label><input type="number" id="s-price" min="0" step="1" oninput="calcSell()" /></div>
+    <div class="form-group"><label>Note</label><input type="text" id="s-note" placeholder="optional" /></div>
+    <div class="modal-profit"><span>Profit this sale</span><strong id="s-pft" style="color:var(--green)">฿0</strong></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeM('sell-ov')">Cancel</button>
+      <button class="btn-primary" style="flex:1;margin:0" onclick="submitSale()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="overlay" id="edit-ov" onclick="if(event.target===this)closeM('edit-ov')">
+  <div class="modal">
+    <h3>Edit Item</h3>
+    <input type="hidden" id="e-id" />
+    <div class="form-group"><label>Name</label><input type="text" id="e-name" /></div>
+    <div class="form-group"><label>Category</label>
+      <select id="e-cat"><option>Tops</option><option>Bottoms</option><option>Dresses</option><option>Outerwear</option><option>Footwear</option><option>Accessories</option><option>General</option></select>
+    </div>
+    <div class="form-group"><label>Quantity</label><input type="number" id="e-qty" min="0" /></div>
+    <div class="price-row">
+      <div class="form-group"><label>Buy Price (฿)</label><input type="number" id="e-buy" min="0" step="1" oninput="calcEdit()" /></div>
+      <div class="form-group"><label>Sale Price (฿)</label><input type="number" id="e-price" min="0" step="1" oninput="calcEdit()" /></div>
+    </div>
+    <div class="modal-profit"><span>Profit / unit</span><strong id="e-pft" style="color:var(--green)">฿0</strong></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeM('edit-ov')">Cancel</button>
+      <button class="btn-primary" style="flex:1;margin:0" onclick="submitEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  let allItems = [], filter = 'all', sellBP = 0;
+
+  async function init(){ await Promise.all([loadItems(), loadStats()]); }
+
+  async function loadItems(){
+    allItems = await(await fetch('/api/items')).json();
+    updateCounts(); renderGrid();
+  }
+
+  async function loadStats(){
+    const s = await(await fetch('/api/stats')).json();
+    document.getElementById('s-total').textContent = s.total_items;
+    document.getElementById('s-in').textContent    = s.in_stock;
+    document.getElementById('s-out').textContent   = s.out_of_stock;
+    document.getElementById('s-val').textContent   = '฿'+fmt(s.inventory_value);
+    document.getElementById('s-rev').textContent   = '฿'+fmt(s.total_revenue);
+    document.getElementById('s-pft').textContent   = '฿'+fmt(s.total_profit);
+  }
+
+  async function loadSales(){
+    const sales = await(await fetch('/api/sales')).json();
+    const tb = document.getElementById('sales-tbody');
+    if(!sales.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted)">No sales yet.</td></tr>';return;}
+    tb.innerHTML = sales.map(s=>{
+      const rev=s.quantity_sold*s.sale_price, pft=s.profit, pc=pft>=0?'pos':'neg';
+      return `<tr>
+        <td>${s.image_path?`<img class="sale-thumb" src="/${s.image_path}"/>`:`<div class="sale-thumb" style="display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--warm)">👕</div>`}</td>
+        <td><strong>${esc(s.item_name)}</strong></td>
+        <td>${s.quantity_sold}</td>
+        <td style="color:var(--muted)">฿${fmt(s.buy_price)}</td>
+        <td>฿${fmt(s.sale_price)}</td>
+        <td>฿${fmt(rev)}</td>
+        <td class="pft ${pc}">฿${fmt(pft)}</td>
+        <td style="color:var(--muted);font-size:11px">${esc(s.note||'—')}</td>
+        <td style="color:var(--muted);font-size:11px">${String(s.sold_at).slice(0,16)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function updateCounts(){
+    document.getElementById('c-all').textContent = allItems.length;
+    document.getElementById('c-in').textContent  = allItems.filter(i=>i.quantity>0).length;
+    document.getElementById('c-out').textContent = allItems.filter(i=>i.quantity===0).length;
+  }
+
+  function setFilter(f,btn){
+    filter=f;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); renderGrid();
+  }
+
+  function renderGrid(){
+    const q=document.getElementById('search').value.toLowerCase();
+    const items=allItems.filter(i=>{
+      const mf=filter==='all'||(filter==='instock'&&i.quantity>0)||(filter==='outofstock'&&i.quantity===0);
+      const ms=!q||i.name.toLowerCase().includes(q)||i.category.toLowerCase().includes(q);
+      return mf&&ms;
+    });
+    const g=document.getElementById('grid');
+    if(!items.length){g.innerHTML='<div class="empty"><div class="empty-icon">🧺</div><h3>Nothing here</h3></div>';return;}
+    g.innerHTML=items.map((item,i)=>{
+      const ppu=item.profit_per_unit, inS=item.quantity>0;
+      return `<div class="item-card${inS?'':' oos'}" style="animation-delay:${i*20}ms">
+        <div class="card-img">
+          ${item.image_path?`<img src="/${item.image_path}" loading="lazy"/>`:`<div class="no-img">👕</div>`}
+          <span class="badge ${inS?'in':'out'}">${inS?'In Stock':'Out'}</span>
+        </div>
+        <div class="card-body">
+          <div class="card-cat">${esc(item.category)}</div>
+          <div class="card-name">${esc(item.name)}</div>
+          <div class="price-grid">
+            <div class="pb"><label>Buy</label><div class="val">฿${fmt(item.buy_price)}</div></div>
+            <div class="pb"><label>Sell</label><div class="val">฿${fmt(item.sale_price)}</div></div>
+          </div>
+          <div class="profit-line" style="color:${ppu>=0?'var(--green)':'var(--red)'}">Profit: ฿${fmt(ppu)}/unit</div>
+          <div class="card-qty">Qty: <strong>${item.quantity}</strong></div>
+          ${item.total_sold>0?`<div class="sales-mini">Sold ${item.total_sold} · Profit ฿${fmt(item.total_profit)}</div>`:''}
+        </div>
+        <div class="card-actions">
+          <button class="btn-sm sell" onclick="openSell(${item.id},'${esc(item.name)}',${item.sale_price},${item.buy_price})"${!inS?' disabled style="opacity:.4;cursor:not-allowed"':''}>Sell</button>
+          <button class="btn-sm" onclick="openEdit(${item.id},'${esc(item.name)}','${esc(item.category)}',${item.quantity},${item.buy_price},${item.sale_price})">Edit</button>
+          <button class="btn-sm del" onclick="del(${item.id},'${esc(item.name)}')">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('img-inp').addEventListener('change',function(){
+    const f=this.files[0];if(!f)return;
+    new FileReader().readAsDataURL(f);
+    const r=new FileReader();r.onload=e=>{const img=document.getElementById('preview-img');img.src=e.target.result;img.style.display='block'};r.readAsDataURL(f);
+  });
+
+  function calcAdd(){
+    const p=fv('a-sale')-fv('a-buy');
+    setProfit('a-pft-prev',p);
+  }
+  function calcSell(){
+    const p=(fv('s-price')-sellBP)*fv('s-qty');
+    setProfit('s-pft',p);
+  }
+  function calcEdit(){
+    setProfit('e-pft',fv('e-price')-fv('e-buy'));
+  }
+  function fv(id){return parseFloat(document.getElementById(id).value)||0}
+  function setProfit(id,p){const el=document.getElementById(id);el.textContent='฿'+fmt(p);el.style.color=p>=0?'var(--green)':'var(--red)'}
+
+  document.getElementById('add-form').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const btn=e.target.querySelector('button');btn.textContent='Adding…';btn.disabled=true;
+    try{
+      const res=await fetch('/api/items',{method:'POST',body:new FormData(e.target)});
+      const d=await res.json();if(d.error)throw new Error(d.error);
+      e.target.reset();document.getElementById('preview-img').style.display='none';
+      document.getElementById('a-pft-prev').textContent='฿0';
+      showToast('Item added ✓');await Promise.all([loadItems(),loadStats()]);
+    }catch(err){showToast('Error: '+err.message);}
+    btn.textContent='＋ Add';btn.disabled=false;
+  });
+
+  function openSell(id,name,price,buyPrice){
+    sellBP=buyPrice;
+    document.getElementById('s-id').value=id;
+    document.getElementById('s-name').value=name;
+    document.getElementById('s-price').value=price;
+    document.getElementById('s-qty').value=1;
+    document.getElementById('s-note').value='';
+    calcSell();
+    document.getElementById('sell-ov').classList.add('open');
+  }
+
+  async function submitSale(){
+    const id=document.getElementById('s-id').value;
+    const qty=parseInt(document.getElementById('s-qty').value);
+    const price=parseFloat(document.getElementById('s-price').value);
+    const note=document.getElementById('s-note').value;
+    const r=await fetch(`/api/items/${id}/sell`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quantity:qty,sale_price:price,note})});
+    const d=await r.json();if(d.error){showToast('Error: '+d.error);return;}
+    closeM('sell-ov');showToast('Sale recorded ✓');await Promise.all([loadItems(),loadStats()]);
+  }
+
+  function openEdit(id,name,cat,qty,buy,price){
+    document.getElementById('e-id').value=id;
+    document.getElementById('e-name').value=name;
+    document.getElementById('e-cat').value=cat;
+    document.getElementById('e-qty').value=qty;
+    document.getElementById('e-buy').value=buy;
+    document.getElementById('e-price').value=price;
+    calcEdit();
+    document.getElementById('edit-ov').classList.add('open');
+  }
+
+  async function submitEdit(){
+    const id=document.getElementById('e-id').value;
+    const r=await fetch(`/api/items/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      name:document.getElementById('e-name').value,
+      category:document.getElementById('e-cat').value,
+      quantity:parseInt(document.getElementById('e-qty').value),
+      buy_price:parseFloat(document.getElementById('e-buy').value),
+      sale_price:parseFloat(document.getElementById('e-price').value),
+    })});
+    const d=await r.json();if(d.error){showToast('Error: '+d.error);return;}
+    closeM('edit-ov');showToast('Updated ✓');await Promise.all([loadItems(),loadStats()]);
+  }
+
+  async function del(id,name){
+    if(!confirm(`Delete "${name}"?`))return;
+    await fetch(`/api/items/${id}`,{method:'DELETE'});
+    showToast('Deleted');await Promise.all([loadItems(),loadStats()]);
+  }
+
+  function closeM(id){document.getElementById(id).classList.remove('open')}
+
+  function switchView(v,btn){
+    document.querySelectorAll('header nav button:not(.export-btn)').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-inventory').style.display=v==='inventory'?'block':'none';
+    document.getElementById('view-sales').style.display=v==='sales'?'block':'none';
+    if(v==='sales')loadSales();
+  }
+
+  function exportExcel(){showToast('Generating…');window.location.href='/api/report/excel';}
+  function fmt(n){return Math.round(Number(n||0)).toLocaleString()}
+  function esc(s){return String(s).replace(/'/g,"\\'")}
+  function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>STCKD — Login</title>
+  <link rel="manifest" href="/static/manifest.json" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:#0a0a0a;color:#f5f2ed;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    .card{background:#141414;border:1px solid #2a2a2a;border-radius:16px;padding:40px 36px;width:100%;max-width:340px;text-align:center}
+    .logo{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:6px;color:#c8ff00;margin-bottom:6px}
+    .subtitle{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#5a5a58;margin-bottom:36px}
+    label{display:block;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#7a7670;margin-bottom:8px;text-align:left}
+    input[type=password]{width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;padding:14px 16px;font-family:'DM Sans',sans-serif;font-size:20px;color:#f5f2ed;text-align:center;letter-spacing:8px;outline:none;transition:.2s;margin-bottom:16px}
+    input[type=password]:focus{border-color:#c8ff00}
+    input[type=password]::placeholder{letter-spacing:2px;font-size:14px;color:#3a3a38}
+    .btn{width:100%;background:#c8ff00;color:#0a0a0a;border:none;border-radius:8px;padding:14px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;cursor:pointer;transition:.2s;margin-top:4px}
+    .btn:hover{background:#d4ff33}
+    .btn:active{transform:scale(.98)}
+    .error{background:#2a0a0a;border:1px solid #5a1a1a;border-radius:8px;padding:10px;font-size:13px;color:#ff6b6b;margin-bottom:16px}
+    .hint{font-size:11px;color:#3a3a38;margin-top:20px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">STCKD</div>
+    <div class="subtitle">Inventory System</div>
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+    <form method="POST">
+      <label>Enter PIN</label>
+      <input type="password" name="pin" placeholder="••••" maxlength="10" autofocus inputmode="numeric" />
+      <button type="submit" class="btn">Enter</button>
+    </form>
+    <div class="hint">Owner PIN or Staff PIN</div>
+  </div>
+</body>
+</html>
